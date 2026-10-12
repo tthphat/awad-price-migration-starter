@@ -2,10 +2,12 @@
 //   migrations/NNN_name.up.sql   and   migrations/NNN_name.down.sql
 // `up` applies every pending step; `down` reverts the LAST applied step only.
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { open, DB_PATH } from '../src/db.js';
 
-const DIR = new URL('../migrations/', import.meta.url).pathname;
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DIR = join(__dirname, '..', 'migrations');
 const db = open();
 db.exec('CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT NOT NULL)');
 
