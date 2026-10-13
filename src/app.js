@@ -18,17 +18,31 @@ async function readBody(req) {
 
 const isPrice = (p) => typeof p === 'number' && Number.isFinite(p) && p > 0 && p <= 100000;
 
+// v2: dual write — chuyển đổi giữa 2 đơn vị
+const toVnd = (thousands) => Math.round(thousands * 1000);      // 45.5 → 45500
+const toThousands = (vnd) => vnd / 1000;                       // 45500 → 45.5
+
+function normalizePrice(body) {
+  if (body.priceVnd !== undefined) {
+    if (!Number.isInteger(body.priceVnd) || body.priceVnd <= 0 || body.priceVnd > 100000000)
+      return null;
+    return { price: toThousands(body.priceVnd), priceVnd: body.priceVnd };
+  }
+  if (!isPrice(body.price)) return null;
+  return { price: body.price, priceVnd: toVnd(body.price) };
+}
+
 export function createApp(db) {
   const q = {
-    list: db.prepare('SELECT id, name, price FROM menu_items ORDER BY id LIMIT ? OFFSET ?'),
-    get: db.prepare('SELECT id, name, price FROM menu_items WHERE id = ?'),
-    insert: db.prepare('INSERT INTO menu_items (name, price) VALUES (?, ?)'),
-    setPrice: db.prepare('UPDATE menu_items SET price = ? WHERE id = ?'),
+    list: db.prepare('SELECT id, name, price, price_vnd FROM menu_items ORDER BY id LIMIT ? OFFSET ?'),
+    get: db.prepare('SELECT id, name, price, price_vnd FROM menu_items WHERE id = ?'),
+    insert: db.prepare('INSERT INTO menu_items (name, price, price_vnd) VALUES (?, ?, ?)'),
+    setPrice: db.prepare('UPDATE menu_items SET price = ?, price_vnd = ? WHERE id = ?'),
     insertOrder: db.prepare("INSERT INTO orders (created_at) VALUES (datetime('now'))"),
     insertLine: db.prepare('INSERT INTO order_items (order_id, menu_item_id, qty, unit_price) VALUES (?, ?, ?, ?)'),
   };
 
-  const view = (row) => ({ id: row.id, name: row.name, price: row.price });
+  const view = (row) => ({ id: row.id, name: row.name, price: row.price, priceVnd: row.price_vnd });
 
   async function handle(req, res) {
     const url = new URL(req.url, 'http://x');
@@ -44,9 +58,10 @@ export function createApp(db) {
       }
       if (req.method === 'POST') {
         const body = await readBody(req);
-        if (!body || typeof body.name !== 'string' || !body.name || !isPrice(body.price))
-          return error(res, 400, 'invalid_body', 'name (string) and price (thousands of dong) are required');
-        const { lastInsertRowid } = q.insert.run(body.name, body.price);
+        if (!body || typeof body.name !== 'string' || !body.name) return error(res, 400, 'invalid_body', 'name is required');
+        const p = normalizePrice(body);
+        if (!p) return error(res, 400, 'invalid_body', 'price (thousands of dong) or priceVnd (dong, integer) is required');
+        const { lastInsertRowid } = q.insert.run(body.name, p.price, p.priceVnd);
         return json(res, 201, view(q.get.get(lastInsertRowid)));
       }
     }
@@ -58,9 +73,9 @@ export function createApp(db) {
       if (req.method === 'GET') return json(res, 200, view(row));
       if (req.method === 'PATCH') {
         const body = await readBody(req);
-        if (!body || !isPrice(body.price))
-          return error(res, 400, 'invalid_body', 'price (thousands of dong) is required');
-        q.setPrice.run(body.price, id);
+        const p = normalizePrice(body);
+        if (!p) return error(res, 400, 'invalid_body', 'price (thousands of dong) or priceVnd (dong, integer) is required');
+        q.setPrice.run(p.price, p.priceVnd, id);
         return json(res, 200, view(q.get.get(id)));
       }
     }

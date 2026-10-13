@@ -1,0 +1,21 @@
+=== STEP: 0 baseline v1 | 2026-10-13 20:36:27 ===
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price
+rows                   20425
+CONSISTENT
+
+=== STEP: 1 expand 002_add_price_vnd | 2026-10-13 21:03:34 ===
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   43918
+price_vnd_null         43918
+price_vnd_not_integer  0
+disagree               0
+CONSISTENT, but 43918 rows have no price_vnd yet — nothing may read price_vnd until they do
+
