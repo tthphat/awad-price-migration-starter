@@ -19,3 +19,39 @@ price_vnd_not_integer  0
 disagree               0
 CONSISTENT, but 43918 rows have no price_vnd yet — nothing may read price_vnd until they do
 
+=== STEP: 2 deploy v2 dual write | 2026-10-13 21:48:28 ===
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   83596
+price_vnd_null         83596
+price_vnd_not_integer  0
+disagree               0
+CONSISTENT, but 83596 rows have no price_vnd yet — nothing may read price_vnd until they do
+
+=== STEP: 2 deploy v2 dual write | 2026-10-13 21:55:43 ===
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   91301
+price_vnd_null         87452
+price_vnd_not_integer  0
+disagree               1
+INCONSISTENT
+
+=== STEP: 3 backfill | 2026-10-13 21:59:23 ===
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   94598
+price_vnd_null         0
+price_vnd_not_integer  0
+disagree               0
+CONSISTENT
+
