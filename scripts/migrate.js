@@ -6,8 +6,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { open, DB_PATH } from '../src/db.js';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DIR = join(__dirname, '..', 'migrations');
+const DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'migrations');
 const db = open();
 db.exec('CREATE TABLE IF NOT EXISTS schema_migrations (version TEXT PRIMARY KEY, applied_at TEXT NOT NULL)');
 

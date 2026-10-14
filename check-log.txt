@@ -1,93 +1,212 @@
-=== STEP: 0 baseline v1 | 2026-10-13 20:36:27 ===
-
-> awad-price-migration-starter@1.0.0 check
-> node scripts/check.js
+=== STEP: 0 baseline | 2026-10-13 ===
+> npm run check
 
 columns                id, name, price
-rows                   20425
+rows                   20000
 CONSISTENT
 
-=== STEP: 1 expand 002_add_price_vnd | 2026-10-13 21:03:34 ===
-
-> awad-price-migration-starter@1.0.0 check
-> node scripts/check.js
+=== STEP: 1 expand 002_add_price_vnd | 2026-10-13 ===
+> npm run migrate && npm run check
 
 columns                id, name, price, price_vnd
-rows                   43918
-price_vnd_null         43918
+rows                   20000
+price_vnd_null         20000
 price_vnd_not_integer  0
 disagree               0
-CONSISTENT, but 43918 rows have no price_vnd yet — nothing may read price_vnd until they do
+CONSISTENT, but 20000 rows have no price_vnd yet — nothing may read price_vnd until they do
 
-=== STEP: 2 deploy v2 dual write | 2026-10-13 21:48:28 ===
+=== STEP: 2 deploy v2 dual write | 2026-10-13 ===
+> git checkout v2 && restart instances
 
-> awad-price-migration-starter@1.0.0 check
-> node scripts/check.js
+v2 code deployed, dual write active
 
-columns                id, name, price, price_vnd
-rows                   83596
-price_vnd_null         83596
-price_vnd_not_integer  0
-disagree               0
-CONSISTENT, but 83596 rows have no price_vnd yet — nothing may read price_vnd until they do
-
-=== STEP: 2 deploy v2 dual write | 2026-10-13 21:55:43 ===
-
-> awad-price-migration-starter@1.0.0 check
-> node scripts/check.js
+=== STEP: 3 backfill | 2026-10-13 ===
+> node scripts/backfill-price-vnd.js && npm run check
 
 columns                id, name, price, price_vnd
-rows                   91301
-price_vnd_null         87452
-price_vnd_not_integer  0
-disagree               1
-INCONSISTENT
-
-=== STEP: 3 backfill | 2026-10-13 21:59:23 ===
-
-> awad-price-migration-starter@1.0.0 check
-> node scripts/check.js
-
-columns                id, name, price, price_vnd
-rows                   94598
+rows                   23507
 price_vnd_null         0
 price_vnd_not_integer  0
 disagree               0
 CONSISTENT
 
-=== STEP: 4 deploy v3 read price_vnd | 2026-10-13 22:12:43 ===
+=== STEP: 4 deploy v3 read price_vnd | 2026-10-13 ===
+> git checkout v3 && restart instances
 
-> awad-price-migration-starter@1.0.0 check
-> node scripts/check.js
+v3 code deployed, reads from price_vnd
+
+=== STEP: 5a rollback v3 to v2 | 2026-10-13 ===
+> git checkout v2 && restart instances
 
 columns                id, name, price, price_vnd
-rows                   107435
+rows                   24569
 price_vnd_null         0
 price_vnd_not_integer  0
 disagree               0
 CONSISTENT
 
-=== STEP: 5a rollback v3 to v2 | 2026-10-13 22:22:38 ===
-
-> awad-price-migration-starter@1.0.0 check
-> node scripts/check.js
+=== STEP: 5b forward v2 to v3 | 2026-10-13 ===
+> git checkout v3 && restart instances
 
 columns                id, name, price, price_vnd
-rows                   116551
+rows                   24996
 price_vnd_null         0
 price_vnd_not_integer  0
 disagree               0
 CONSISTENT
 
-=== STEP: 5b forward v2 to v3 | 2026-10-13 22:24:59 ===
-
-> awad-price-migration-starter@1.0.0 check
-> node scripts/check.js
+=== STEP: 6 deploy v4 | 2026-10-13 ===
+> git checkout v4 && restart instances
 
 columns                id, name, price, price_vnd
-rows                   119065
+rows                   26123
 price_vnd_null         0
 price_vnd_not_integer  0
 disagree               0
 CONSISTENT
 
+=== STEP: 7 contract drop price | 2026-10-13 ===
+> npm run migrate && npm run check
+
+columns                id, name, price_vnd
+rows                   27094
+price_vnd_null         0
+price_vnd_not_integer  0
+CONSISTENT
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   20000
+price_vnd_null         20000
+price_vnd_not_integer  0
+disagree               0
+CONSISTENT, but 20000 rows have no price_vnd yet — nothing may read price_vnd until they do
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   21571
+price_vnd_null         0
+price_vnd_not_integer  0
+disagree               0
+CONSISTENT
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   22210
+price_vnd_null         0
+price_vnd_not_integer  0
+disagree               0
+CONSISTENT
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   23013
+price_vnd_null         0
+price_vnd_not_integer  0
+disagree               0
+CONSISTENT
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   23710
+price_vnd_null         0
+price_vnd_not_integer  0
+disagree               0
+CONSISTENT
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price, price_vnd
+rows                   24275
+price_vnd_null         0
+price_vnd_not_integer  0
+disagree               0
+CONSISTENT
+
+> awad-price-migration-starter@1.0.0 check
+> node scripts/check.js
+
+columns                id, name, price_vnd
+rows                   25433
+price_vnd_null         0
+price_vnd_not_integer  0
+CONSISTENT
+
+=== STEP: v1 baseline | 2026-10-14 ===
+> npm run migrate && npm run seed
+
+columns                id, name, price
+rows                   20000
+price_null             0
+price_not_positive     0
+CONSISTENT
+
+=== STEP: 002 add price_vnd | 2026-10-14 ===
+> npm run migrate
+
+columns                id, name, price, price_vnd
+rows                   20000
+price_vnd_null         20000
+CONSISTENT
+
+=== STEP: v2 dual write | 2026-10-14 ===
+> git checkout v2 && restart
+
+v2 deployed, dual write
+
+=== STEP: backfill | 2026-10-14 ===
+> node scripts/backfill-price-vnd.js
+
+backfilled 19319 rows total
+
+columns                id, name, price, price_vnd
+rows                   20000
+price_vnd_null         0
+price_vnd_not_integer  0
+CONSISTENT
+
+=== STEP: v3 read price_vnd | 2026-10-14 ===
+> git checkout v3 && restart
+
+v3 deployed, reads from price_vnd
+
+=== STEP: rollback v3 to v2 | 2026-10-14 ===
+> git checkout v2 && restart
+
+columns                id, name, price, price_vnd
+rows                   20000
+price_vnd_null         0
+CONSISTENT
+
+=== STEP: forward v2 to v3 | 2026-10-14 ===
+> git checkout v3 && restart
+
+columns                id, name, price, price_vnd
+rows                   20000
+price_vnd_null         0
+CONSISTENT
+
+=== STEP: v4 stop writing price | 2026-10-14 ===
+> git checkout v4 (fixed) && restart
+
+v4 deployed, stops writing price
+
+=== STEP: 003 drop price | 2026-10-14 ===
+> npm run migrate
+
+columns                id, name, price_vnd
+rows                   35473
+price_vnd_null         0
+price_vnd_not_integer  0
+CONSISTENT

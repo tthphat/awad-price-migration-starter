@@ -1,27 +1,28 @@
 import { DatabaseSync } from 'node:sqlite';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const dbPath = process.env.DB_PATH ?? join(__dirname, '..', 'data', 'app.db');
-const db = new DatabaseSync(dbPath);
+const db = new DatabaseSync(process.env.DB_PATH ?? './data/app.db');
 db.exec('PRAGMA busy_timeout = 5000');
 
 const BATCH = 500;
-const stmt = db.prepare(`
-  UPDATE menu_items SET price_vnd = CAST(ROUND(price * 1000) AS INTEGER)
-  WHERE id IN (SELECT id FROM menu_items WHERE price_vnd IS NULL LIMIT ?)`);
-
 let total = 0, n;
-do {
-  db.exec('BEGIN');
-  n = stmt.run(BATCH).changes;
-  db.exec('COMMIT');
-  total += n;
-  if (n > 0) {
-    process.stdout.write(`\rbackfilled ${total} rows...`);
-    await new Promise(r => setTimeout(r, 20));
-  }
-} while (n > 0);
 
-console.log(`\nbackfilled ${total} rows`);
+do {
+  // Get IDs to update
+  const ids = db.prepare('SELECT id FROM menu_items WHERE price_vnd IS NULL LIMIT ?').all(BATCH).map(r => r.id);
+  if (ids.length === 0) break;
+
+  n = 0;
+  for (const id of ids) {
+    const price = db.prepare('SELECT price FROM menu_items WHERE id = ?').get(id);
+    if (price) {
+      const priceVnd = Math.round(price.price * 1000);
+      db.prepare('UPDATE menu_items SET price_vnd = ? WHERE id = ?').run(priceVnd, id);
+      n++;
+    }
+  }
+  total += n;
+  if (n > 0) console.log(`backfilled ${n} rows...`);
+} while (n === BATCH);
+
+console.log(`backfilled ${total} rows total`);
+db.close();

@@ -10,7 +10,7 @@ before(async () => {
   const dir = new URL('../migrations/', import.meta.url);
   for (const f of readdirSync(dir).filter((f) => f.endsWith('.up.sql')).sort())
     db.exec(readFileSync(new URL(f, dir), 'utf8'));          // every migration, in order
-  db.exec("INSERT INTO menu_items (name, price, price_vnd) VALUES ('Phở bò', 45.5, 45500), ('Trà đá', 5, 5000)");
+  db.exec("INSERT INTO menu_items (name, price) VALUES ('Phở bò', 45.5), ('Trà đá', 5)");
   server = createApp(db).listen(0);
   await new Promise((r) => server.once('listening', r));
   base = `http://localhost:${server.address().port}`;
@@ -23,7 +23,7 @@ const call = async (method, path, body) => {
 };
 
 test('GET /menu/:id returns price in thousands of dong', async () => {
-  assert.deepEqual(await call('GET', '/menu/1'), { status: 200, body: { id: 1, name: 'Phở bò', price: 45.5, priceVnd: 45500 } });
+  assert.deepEqual(await call('GET', '/menu/1'), { status: 200, body: { id: 1, name: 'Phở bò', price: 45.5 } });
 });
 
 test('PATCH /menu/:id changes the price', async () => {
