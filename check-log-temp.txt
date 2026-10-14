@@ -1,9 +1,0 @@
-
-> awad-price-migration-starter@1.0.0 check
-> node scripts/check.js
-
-columns                id, name, price_vnd
-rows                   27094
-price_vnd_null         0
-price_vnd_not_integer  0
-CONSISTENT
